@@ -4,10 +4,6 @@
 
 ## 강사님 github 
 
-
-
-![alt text](image.png)
-
 ## 각자 배정된 브랜치 이름 
 재원: jaewon 
 차훈: chahoon
