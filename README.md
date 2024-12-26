@@ -80,3 +80,4 @@ git reset --hard origin/main
 #### 항상 branch의 default를 자신의 브랜치로 변경 
 ```
 git branch --set-upstream-to=origin/<branch-name>
+```
