@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, {{ user }}</h1>
+
+    <h2>World Camera</h2>
+    {% if world_image %}
+        <img src="{{ world_image }}" alt="World Camera Feed" style="width:640px; height:480px;">
+    {% else %}
+        <p>No data available from World Camera</p>
+    {% endif %}
+
+    <h2>Robot Camera</h2>
+    {% if robot_image %}
+        <img src="{{ robot_image }}" alt="Robot Camera Feed" style="width:640px; height:480px;">
+    {% else %}
+        <p>No data available from Robot Camera</p>
+    {% endif %}
+
+    <a href="/logout">Logout</a>
+</body>
+</html>

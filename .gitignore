@@ -6,3 +6,5 @@ install/
 *.jpg
 *.pnSg
 __pycache__
+
+!templates/
