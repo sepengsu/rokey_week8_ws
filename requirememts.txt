@@ -3,3 +3,11 @@ uvicorn
 jinja2
 python-multipart
 itsdangerous
+torch
+torchvision
+torchaudio
+ultralytics
+opencv-python
+numpy<2
+websockets
+wsproto

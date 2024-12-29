@@ -2,25 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Welcome, {{ user }}</h1>
+    <div class="dashboard-container">
+        <h1>Welcome, {{ user }}</h1>
 
-    <h2>World Camera</h2>
-    {% if world_image %}
-        <img src="{{ world_image }}" alt="World Camera Feed" style="width:640px; height:480px;">
-    {% else %}
-        <p>No data available from World Camera</p>
-    {% endif %}
+        <div class="container" style="display: flex; justify-content: center; gap: 20px;">
+            <!-- World Camera Section -->
+            <div class="camera">
+                <h2>World Camera</h2>
+                <img id="world-camera" src="{{ world_image }}" alt="World Camera Feed" onerror="this.src='/static/default.jpg';">
+            </div>
 
-    <h2>Robot Camera</h2>
-    {% if robot_image %}
-        <img src="{{ robot_image }}" alt="Robot Camera Feed" style="width:640px; height:480px;">
-    {% else %}
-        <p>No data available from Robot Camera</p>
-    {% endif %}
+            <!-- Robot Camera Section -->
+            <div class="camera">
+                <h2>Robot Camera</h2>
+                <img id="robot-camera" src="{{ robot_image }}" alt="Robot Camera Feed" onerror="this.src='/static/default.jpg';">
+            </div>
+        </div>
 
-    <a href="/logout">Logout</a>
+        <a href="/logout">Logout</a>
+    </div>
+
+    <script>
+        const ws = new WebSocket("ws://localhost:8000/ws");
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            // Update World Camera image
+            const worldCameraImg = document.querySelector("#world-camera");
+            if (worldCameraImg) {
+                worldCameraImg.src = data.world_image;
+            }
+
+            // Update Robot Camera image
+            const robotCameraImg = document.querySelector("#robot-camera");
+            if (robotCameraImg) {
+                robotCameraImg.src = data.robot_image;
+            }
+        };
+
+        ws.onerror = function(error) {
+            console.error("WebSocket error:", error);
+        };
+
+        ws.onclose = function() {
+            console.log("WebSocket connection closed");
+        };
+    </script>
 </body>
 </html>

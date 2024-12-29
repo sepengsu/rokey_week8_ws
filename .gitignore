@@ -8,3 +8,7 @@ install/
 __pycache__
 
 !templates/
+venv/
+*.pyc
+yolo/data*
+.vscode/
