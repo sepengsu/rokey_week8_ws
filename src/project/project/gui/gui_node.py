@@ -76,7 +76,6 @@ class GuiNode(Node):
         
         if msg.data == 'None':
             return
-    # 나머지 박스 그리기 작업
 
         boxes = eval(msg.data) # 문자열을 리스트로 변환
         for box in boxes:
