@@ -1,11 +1,14 @@
-import rclpy, time, cv2, numpy as np
+import rclpy, time, cv2, numpy as np, sys, os
 from rclpy.node import Node
 from std_msgs.msg import String
 from sensor_msgs.msg import CompressedImage
-from project.pc_tower.callback import NodeCallbacks
+
+print(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+mother_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(mother_path)) # project 디렉토리 추
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # project 디렉토리 추가
+from pc_tower.callback import NodeCallbacks
 from project.database import DetectDBHandler
-
-
 def add_methods_from(source_class):
     """
     source_class의 메서드를 대상 클래스에 추가하는 데코레이터
@@ -41,19 +44,19 @@ class TowerNode(Node):
         self.robot_image_sub = self.create_subscription(
             CompressedImage,
             'robot/image',
-            self.robot_image_callback,
+            self.robot_camera_image_callback,
             5
         )
         self.robot_class_sub = self.create_subscription(
             String,
             'robot/classes',
-            self.robot_class_callback,
+            self.robot_camera_classes_callback,
             5
         )
         self.robot_box_sub = self.create_subscription(
             String,
             'robot/boxes',
-            self.robot_box_callback,
+            self.robot_camera_boxes_callback,
             5
         )
 
@@ -61,22 +64,36 @@ class TowerNode(Node):
         self.world_image_sub = self.create_subscription(
             CompressedImage,
             'world/image',
-            self.world_image_callback,
+            self.world_camera_image_callback,
             5
         )
         self.world_class_sub = self.create_subscription(
             String,
             'world/classes',
-            self.world_class_callback,
+            self.world_camera_classes_callback,
             5
         )
         self.world_box_sub = self.create_subscription(
             String,
             'world/boxes',
-            self.world_box_callback,
+            self.world_camera_boxes_callback,
             5
         )
 
     def db_open(self):
         self.world_db = DetectDBHandler('world') # world 데이터베이스 핸들러
-        
+
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    tower_node = TowerNode()
+    rclpy.spin(tower_node)
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # project 디렉토리 추가
+    rclpy.init(args=None)
+    a = TowerNode()
+    print(a.__dict__)
