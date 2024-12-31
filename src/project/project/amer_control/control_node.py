@@ -1,10 +1,15 @@
-import rclpy
+import rclpy, sys, os
 from rclpy.node import Node
 from std_msgs.msg import String
-from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion
+from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, PoseStamped
+from nav2_msgs.action import NavigateToPose
+mother_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(mother_path)) # project 디렉토리 추가
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # project 디렉토리 추가
+from project.project.amer_control.function import add_methods_from, GoToGoalFunction
 
+@add_methods_from(GoToGoalFunction)
 class ControlNode(Node):
-
     def __init__(self):
         super().__init__('control_node')
         self.get_logger().info('Control node started')
@@ -16,11 +21,8 @@ class ControlNode(Node):
     def init_subscribers(self):
         """Initialize subscribers"""
         self.create_subscription(
-            String,
-            '/control/commands',
-            self.commands_callback,
-            5
-        )
+            String,'/control/commands',
+            self.commands_callback,5)
 
     def commands_callback(self, msg):
         self.cmd = msg.data
@@ -28,34 +30,13 @@ class ControlNode(Node):
     def init_publishers(self):
         """Initialize publishers"""
         self.initpose_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            '/initialpose',
-            5
-        )
-
-    def publish_initpose(self):
-        initial_pose = PoseWithCovarianceStamped()
-        initial_pose.header.frame_id = 'map'  # The frame in which the pose is defined
-        initial_pose.header.stamp = self.get_clock().now().to_msg()
-        initial_pose.pose.pose.position.x = 0.1750425100326538 # X-coordinate
-        initial_pose.pose.pose.position.y = 0.05808566138148308 # Y-coordinate
-        initial_pose.pose.pose.position.z = 0.0  # Z should be 0 for 2D navigation
-
-        # Set the orientation (in quaternion form)
-        initial_pose.pose.pose.orientation = Quaternion(
-            x=0.0,y=0.0,
-            z=-0.04688065682721989,  # 90-degree rotation in yaw (example)
-            w=0.9989004975549108  # Corresponding quaternion w component
-        )
-        initial_pose.pose.covariance = [
-            0.25, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.25, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891909122467
-        ]
-        self.initpose_pub.publish(initial_pose)
+            PoseWithCovarianceStamped,'/initialpose',5)
+    
+    def action_clients(self):
+        '''
+        /navigate_to_pose
+        '''
+        self.navi_action_clients  = self.create_client(NavigateToPose, '/navigate_to_pose')
 
 def main(args=None):
     rclpy.init(args=args)
@@ -63,3 +44,7 @@ def main(args=None):
     rclpy.spin(control_node)
     control_node.destroy_node()
     rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

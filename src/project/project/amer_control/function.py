@@ -1,64 +1,61 @@
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, PoseStamped
+from nav2_msgs.action import NavigateToPose
 
-class CommandFunction:
+def add_methods_from(source_class):
+    """
+    source_class의 메서드를 대상 클래스에 추가하는 데코레이터
+    """
+    def decorator(target_class):
+        for attr_name in dir(source_class):
+            if callable(getattr(source_class, attr_name)) and not attr_name.startswith("__"):
+                # source_class의 메서드를 target_class에 추가
+                setattr(target_class, attr_name, getattr(source_class, attr_name))
+        return target_class
+    return decorator
+
+class InitPoseFunction:
     '''
-    msg.data에 따라 명령을 수행하는 클래스
+    초기 위치를 설정하는 클래스
+    initialpose 메시지를 발행하여 초기 위치 설정
     '''
-    def cmd_standby(self):
-        '''
-        Standby 명령 수행
-        '''
-        print('Standby')
-        return 0, 0
-    
-    def cmd_start(self):
-        '''
-        Start 명령 수행
-        '''
-        print('Start')
-        goal_pose = PoseWithCovarianceStamped()
-        position = [1,1,0]
-        orientation = [0,0,0,1]
-        goal_pose.pose.pose.position.x = position[0]
-        goal_pose.pose.pose.position.y = position[1]
-        goal_pose.pose.pose.position.z = position[2]
-        goal_pose.pose.pose.orientation = Quaternion(
-            x=orientation[0], y=orientation[1], z=orientation[2], w=orientation[3]
+    def publish_initpose(self):
+        initial_pose = PoseWithCovarianceStamped()
+        initial_pose.header.frame_id = 'map'  # The frame in which the pose is defined
+        initial_pose.header.stamp = self.get_clock().now().to_msg()
+        initial_pose.pose.pose.position.x = 0.1750425100326538 # X-coordinate
+        initial_pose.pose.pose.position.y = 0.05808566138148308 # Y-coordinate
+        initial_pose.pose.pose.position.z = 0.0  # Z should be 0 for 2D navigation
+
+        # Set the orientation (in quaternion form)
+        initial_pose.pose.pose.orientation = Quaternion(
+            x=0.0,y=0.0,
+            z=-0.04688065682721989,  # 90-degree rotation in yaw (example)
+            w=0.9989004975549108  # Corresponding quaternion w component
         )
-
-    def cmd_stop(self):
-        '''
-        Stop 명령 수행
-        '''
+        initial_pose.pose.covariance = [
+            0.25, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.25, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.06853891909122467
+        ]
+        self.initpose_pub.publish(initial_pose)
 
 class GoToGoalFunction:
     '''
     목표 지점으로 이동하는 클래스
+    action client를 사용하여 목표 지점으로 이동
+    action client: /navigate_to_pose 노드의 action server에 목표 지점을 전송
+    self.navi_action_clients = self.create_client(NavigateToPose, 'navigate_to_pose')
     '''
-    def send_goal(self):
-        # 세 개의 웨이포인트 정의
-        waypoints = []
-
-        # 첫 번째 웨이포인트
-        waypoint1 = PoseStamped()
-        waypoint1.header.stamp.sec = 0
-        waypoint1.header.stamp.nanosec = 0
-        waypoint1.header.frame_id = "map"  # 프레임 ID를 설정 (예: "map")
-        waypoint1.pose.position.x = 0.35624730587005615
-        waypoint1.pose.position.y = -0.7531262636184692
-        waypoint1.pose.position.z = 0.0
-
-        waypoint1_yaw = 0.0  # Target orientation in radians
-        waypoint1.pose.orientation = self.euler_to_quaternion(0, 0, waypoint1_yaw)
-
+    def send_goal(self, goal_msg):
         # 서버 연결 대기
-        self.action_client.wait_for_server()
-
+        self.navi_action_client.wait_for_server()
         # 목표 전송 및 피드백 콜백 설정
-        self._send_goal_future = self.action_client.send_goal_async(
+        self._send_goal_future = self.navi_action_client.send_goal_async(
             goal_msg,
-            feedback_callback=self.feedback_callback
-        )
+            feedback_callback=self.feedback_callback)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
 
     def goal_response_callback(self, future):
@@ -73,30 +70,81 @@ class GoToGoalFunction:
 
     def feedback_callback(self, feedback_msg):
         feedback = feedback_msg.feedback
-        self.get_logger().info(f'Current Waypoint Index: {feedback.current_waypoint}')
+        self.get_logger().info(f'Feedback received: {feedback}') # 피드백 출력
 
     def cancel_goal(self):
         if self._goal_handle is not None:
-            self.get_logger().info('Attempting to cancel the goal...')
-            cancel_future = self._goal_handle.cancel_goal_async()
-            cancel_future.add_done_callback(self.cancel_done_callback)
+            self.get_logger().info('수배차량을 찾았습니다. 목표를 취소합니다.')
+            cancel_future = self._goal_handle.cancel_goal_async() # 목표 취소
+            cancel_future.add_done_callback(self.cancel_done_callback) # 취소 결과 콜백
         else:
             self.get_logger().info('No active goal to cancel.')
 
     def cancel_done_callback(self, future):
         cancel_response = future.result()
-        if len(cancel_response.goals_cancelled) > 0:
-            self.get_logger().info('Goal cancellation accepted. Exiting program...')
-            self.destroy_node()
-            rclpy.shutdown()
-            sys.exit(0)  # Exit the program after successful cancellation
+        if len(cancel_response.goals_cancelled) > 0: # 목표 취소 성공
+            self.get_logger().info('Goal successfully cancelled.')
         else:
             self.get_logger().info('Goal cancellation failed or no active goal to cancel.')
 
     def get_result_callback(self, future):
-        result = future.result().result
-        missed_waypoints = result.missed_waypoints
-        if missed_waypoints:
-            self.get_logger().info(f'Missed waypoints: {missed_waypoints}')
-        else:
-            self.get_logger().info('All waypoints completed successfully!')
+        result = future.result().result # 도착 결과
+        if result.arrived:
+            # 목표에 도착했지만 수배차량을 찾지 못한 경우
+            self.get_logger().info('목표에 도착했으나 수배차량을 찾지 못했습니다.')
+            self.not_found() # 수배차량을 찾지 못한 경우
+
+
+@add_methods_from(InitPoseFunction) # InitPoseFunction의 메서드를 CommandFunction에 추가
+@add_methods_from(GoToGoalFunction) # GoToGoalFunction의 메서드를 CommandFunction에 추가
+class CommandFunction:
+    '''
+    msg.data에 따라 명령을 수행하는 클래스
+    '''
+    def cmd_standby(self):
+        '''
+        Standby 명령 수행
+        '''
+        print('Standby')
+        return 0, 0
+    
+    def cmd_start(self):
+        '''
+        Start 명령 수행
+        1. 목표 지점 설정
+        2. 목표 지점으로 이동 (send_goal)
+        '''
+        print('Start')
+        goal_pose = NavigateToPose.Goal() # 목표 지점 설정
+        position = [1,1,0]
+        orientation = [0,0,0,1]
+        goal_pose.pose.pose.position.x = position[0]
+        goal_pose.pose.pose.position.y = position[1]
+        goal_pose.pose.pose.position.z = position[2]
+        goal_pose.pose.pose.orientation.x = orientation[0]
+        goal_pose.pose.pose.orientation.y = orientation[1]
+        goal_pose.pose.pose.orientation.z = orientation[2]
+        goal_pose.pose.pose.orientation.w = orientation[3]
+        goal_pose.pose.header.frame_id = 'map'
+        self.send_goal(goal_pose) # 목표 지점으로 이동
+
+    def cmd_emergency_stop(self):
+        '''
+        Stop 명령 수행 (수배차량을 찾지 못하고 급하게 정지)
+        1. 이동 중인 목표 지점 취소 (cancel_goal)
+        2. 로봇 정지
+        '''
+        print('Emergency stop')
+        self.cancel_goal()
+
+    def cmd_found(self):
+        '''
+        수배차량을 찾은 경우 수행
+        1. 이동 중인 목표 지점 취소 (cancel_goal)
+        2. 로봇 정지
+        3. 수배차량을 찾았다는 메시지 출력
+        4. tracking 시작
+        '''
+        print('Found')
+        self.cancel_goal()
+        

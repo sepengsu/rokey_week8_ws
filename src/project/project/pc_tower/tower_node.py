@@ -5,7 +5,7 @@ from sensor_msgs.msg import CompressedImage
 
 print(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 mother_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
-sys.path.append(os.path.dirname(mother_path)) # project 디렉토리 추
+sys.path.append(os.path.dirname(mother_path)) # project 디렉토리 추가
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # project 디렉토리 추가
 from pc_tower.callback import NodeCallbacks
 from project.database import DetectDBHandler
