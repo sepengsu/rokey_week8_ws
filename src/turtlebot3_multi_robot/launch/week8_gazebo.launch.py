@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 # Authors: Arshad Mehmood
 
 import os
@@ -25,22 +26,18 @@ from launch_ros.actions import Node
 from launch.event_handlers import OnProcessExit
 from launch.conditions import IfCondition
 import launch.logging
-import xacro
-def xacro_process(xacro_file):
-    robot_description_config = xacro.process_file(xacro_file)
-    robot_description = robot_description_config.toxml()
-    return robot_description
+
+# 모델의 순서는 turtlebot3_burger.urdf, rc_car.urdf
 def generate_launch_description():
     ld = LaunchDescription()
 
     # Names and poses of the robots
     robots = [
-        {'name': 'tb1', 'x_pose': '-1.5', 'y_pose': '-0.5', 'z_pose': 0.01},
-        {'name': 'tb2', 'x_pose': '-1.5', 'y_pose': '0.5', 'z_pose': 0.01},
+        {'name': 'amr', 'x_pose': '1.8', 'y_pose': '1.2', 'z_pose': 0.01,'w_pose': 1.57079632679},
+        {'name': 'rc_car', 'x_pose': '2.4', 'y_pose': '2.4', 'z_pose': 0.01,'w_pose': 0.0},
         ]
 
-    TURTLEBOT3_MODEL = 'waffle'
-    # TURTLEBOT3_MODEL = 'burger'
+    TURTLEBOT3_MODEL = 'burger'
 
     use_sim_time = LaunchConfiguration('use_sim_time', default='true')
     declare_use_sim_time = DeclareLaunchArgument(
@@ -56,34 +53,40 @@ def generate_launch_description():
     declare_enable_rviz = DeclareLaunchArgument(
         name='enable_rviz', default_value=enable_rviz, description='Enable rviz launch'
     )
+
+    
     turtlebot3_multi_robot = get_package_share_directory('turtlebot3_multi_robot')
 
     package_dir = get_package_share_directory('turtlebot3_multi_robot')
     nav_launch_dir = os.path.join(package_dir, 'launch', 'nav2_bringup')
 
-    week5_model_dir = get_package_share_directory('week5_model')
     rviz_config_file = LaunchConfiguration('rviz_config_file')
     declare_rviz_config_file_cmd = DeclareLaunchArgument(
         'rviz_config_file',
         default_value=os.path.join(
             package_dir, 'rviz', 'multi_nav2_default_view.rviz'),
         description='Full path to the RVIZ config file to use')
-    
 
-    xacro_list = ["/home/jaenote/rokey_week5_ws/src/week5_model/urdf/hose_robot.urdf.xacro",
-                    "/home/jaenote/rokey_week5_ws/src/week5_model/urdf/turtlebot3_waffle_pi.urdf.xacro"]
-    xml_list = [xacro_process(xacro_file) for xacro_file in xacro_list]
+    urdf_list = [os.path.join(turtlebot3_multi_robot, 'urdf', 'turtlebot3_' + TURTLEBOT3_MODEL + '.urdf'),
+                 os.path.join(turtlebot3_multi_robot, 'urdf', 'rc_car.urdf')] 
+    
+    sdf_list = [os.path.join(turtlebot3_multi_robot, 'models', 'turtlebot3_'+ TURTLEBOT3_MODEL, 'model.sdf'), # turtlebot3_burger.sdf
+                os.path.join(turtlebot3_multi_robot, 'models', 'rc_car', 'car_model.sdf')] # rc_car.sdf
 
     world = os.path.join(
-        get_package_share_directory('week5_model'),
-        'worlds', 'trash.world')
+        get_package_share_directory('turtlebot3_multi_robot'),
+        'worlds', 'multi_robot_world.world')
 
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('gazebo_ros'), 'launch', 'gzserver.launch.py')
         ),
-        launch_arguments={'world': world}.items(),
+        launch_arguments={
+            'world': world,
+            'verbose': 'true',
+        }.items(),
     )
+
 
     gzclient_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -112,7 +115,7 @@ def generate_launch_description():
         executable='map_server',
         name='map_server',
         output='screen',
-        parameters=[{'yaml_filename': os.path.join(get_package_share_directory('week5_map'), 'map', 'map.yaml'),
+        parameters=[{'yaml_filename': os.path.join(get_package_share_directory('turtlebot3_multi_robot'), 'map', 'map.yaml')
                      },],
         remappings=remappings)
 
@@ -135,9 +138,8 @@ def generate_launch_description():
     remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
 
     last_action = None
-    sdf_list = ['model', 'hose_robot']
     # Spawn turtlebot3 instances in gazebo
-    for robot, robot_description, sdf_name in zip(robots, xml_list, sdf_list):
+    for robot, urdf, sdf in zip(robots, urdf_list, sdf_list):
 
         namespace = [ '/' + robot['name'] ]
 
@@ -148,26 +150,24 @@ def generate_launch_description():
             executable='robot_state_publisher',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time,
-                        'publish_frequency': 10.0,
-                        'robot_description': robot_description}],
+                            'publish_frequency': 10.0}],
             remappings=remappings,
+            arguments=[urdf],
         )
 
-        path = os.path.join(turtlebot3_multi_robot,'models', 'turtlebot3_' + TURTLEBOT3_MODEL, f'{sdf_name}.sdf')
-        # Create spawn call
+        # 각 로봇의 sdf 파일을 이용하여 gazebo에 로봇을 생성
         spawn_turtlebot3_burger = Node(
             package='gazebo_ros',
             executable='spawn_entity.py',
             arguments=[
-                '-file', path,
+                '-file', sdf,
                 '-entity', robot['name'],
-                '-robot_namespace', namespace[0],
+                '-robot_namespace', namespace,
                 '-x', robot['x_pose'], '-y', robot['y_pose'],
                 '-z', '0.01', '-Y', '0.0',
                 '-unpause',
             ],
             output='screen',
-            
         )
 
         bringup_cmd = IncludeLaunchDescription(
@@ -213,15 +213,6 @@ def generate_launch_description():
 
     ######################
     # Start rviz nodes and drive nodes after the last robot is spawned
-    cal_pose = {'x': 0.638993-float(robots[0]['x_pose']),
-                'y': -0.0794064-float(robots[0]['y_pose']),
-                'z': -0.001434326171875}
-    # # cal_pose = {'x': -12.2*-1*0.05, 'y': -7.34*-1*0.05, 'z': 0.0}
-    for robot in robots:
-        robot['x_pose'] = str(float(robot['x_pose']) + cal_pose['x'])
-        robot['y_pose'] = str(float(robot['y_pose']) + cal_pose['y'])
-        robot['z_pose'] = str(float(robot['z_pose']) + cal_pose['z'])
-        
     for robot in robots:
 
         namespace = [ '/' + robot['name'] ]
@@ -237,6 +228,16 @@ def generate_launch_description():
             output='screen'
         )
 
+        rviz_cmd = IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(nav_launch_dir, 'rviz_launch.py')),
+                launch_arguments={'use_sim_time': use_sim_time, 
+                                  'namespace': namespace,
+                                  'use_namespace': 'True',
+                                  'rviz_config': rviz_config_file, 'log_level': 'warn'}.items(),
+                                   condition=IfCondition(enable_rviz)
+                                    )
+
         drive_turtlebot3_burger = Node(
             package='turtlebot3_gazebo', executable='turtlebot3_drive',
             namespace=namespace, output='screen',
@@ -248,14 +249,13 @@ def generate_launch_description():
         post_spawn_event = RegisterEventHandler(
             event_handler=OnProcessExit(
                 target_action=last_action,
-                on_exit=[initial_pose_cmd,drive_turtlebot3_burger],
+                on_exit=[initial_pose_cmd, rviz_cmd, drive_turtlebot3_burger],
             )
         )
 
         # Perform next rviz and other node instantiation after the previous intialpose request done
         last_action = initial_pose_cmd
 
-        # ld.add_action(post_spawn_event)
         ld.add_action(post_spawn_event)
         ld.add_action(declare_params_file_cmd)
     ######################

@@ -72,7 +72,6 @@ class Tracking:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.history = defaultdict(lambda: [])
 
-
     def track(self, frame):
         """
         실시간 객체 탐지 및 추적 수행
@@ -99,50 +98,6 @@ class Tracking:
         '''
         if outputs is None or len(outputs) == 0:
             return "None" , "None"
-
-        # YOLO 결과 처리
-        result = outputs[0]  # 단일 이미지 결과 사용
-        if not hasattr(result, "boxes"):
-            return "None", "None"
-
-        boxes = result.boxes.xywh  # 바운딩 박스 정보
-        classes = result.boxes.cls  # 클래스 정보
-        ids = result.boxes.track_id  # 객체 ID 정보 
-
-        # 리스트로 변환
-        boxes_list = boxes.tolist()
-        boxes_list = [[round(coord, 2) for coord in box] for box in boxes_list] 
-        classes_list = [int(cls) for cls in classes.tolist()]
-        track_ids = [int(track_id) for track_id in ids.tolist()]
-
-        # 문자열로 변환
-        boxes_str = str(boxes_list)
-        classes_str = str(classes_list)
-        track_ids_str = str(track_ids)
-
-        return classes_str, boxes_str, track_ids_str
-    
-    def update_history(self, track_ids, boxes):
-        """
-        객체 이력 정보 업데이트
-        :param track_ids: 객체 ID 리스트
-        :param boxes: 객체 바운딩 박스 리스트
-        """
-        for track_id, box in zip(track_ids, boxes):
-            self.history[track_id].append(box)
-    def get_history(self):
-        """
-        객체 이력 정보 반환
-        :return: 객체 이력 정보 (dict)
-        """
-        return self.history
-    
-    def drawing(self,frame,result):
-        for box in result.xyxy:
-            x1, y1, x2, y2 = [int(coord) for coord in box]
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
-        return frame
-
 # if __name__ == '__main__':
 #     from function import get_index_of_cam
 #     index = get_index_of_cam()
@@ -187,6 +142,49 @@ class Tracking:
 #             break
 #     cap.release()
 #     cv2.destroyAllWindows()
+        # YOLO 결과 처리
+        result = outputs[0]  # 단일 이미지 결과 사용
+        if not hasattr(result, "boxes"):
+            return "None", "None"
+
+        boxes = result.boxes.xywh  # 바운딩 박스 정보
+        classes = result.boxes.cls  # 클래스 정보
+        ids = result.boxes.track_id  # 객체 ID 정보 
+
+        # 리스트로 변환
+        boxes_list = boxes.tolist()
+        boxes_list = [[round(coord, 2) for coord in box] for box in boxes_list] 
+        classes_list = [int(cls) for cls in classes.tolist()]
+        track_ids = [int(track_id) for track_id in ids.tolist()]
+
+        # 문자열로 변환
+        boxes_str = str(boxes_list)
+        classes_str = str(classes_list)
+        track_ids_str = str(track_ids)
+
+        return classes_str, boxes_str, track_ids_str
+    
+    def update_history(self, track_ids, boxes):
+        """
+        객체 이력 정보 업데이트
+        :param track_ids: 객체 ID 리스트
+        :param boxes: 객체 바운딩 박스 리스트
+        """
+        for track_id, box in zip(track_ids, boxes):
+            self.history[track_id].append(box)
+    def get_history(self):
+        """
+        객체 이력 정보 반환
+        :return: 객체 이력 정보 (dict)
+        """
+        return self.history
+    
+    def drawing(self,frame,result):
+        for box in result.xyxy:
+            x1, y1, x2, y2 = [int(coord) for coord in box]
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 0), 2)
+        return frame
+
 
 if __name__ == '__main__':
     from function import get_index_of_cam

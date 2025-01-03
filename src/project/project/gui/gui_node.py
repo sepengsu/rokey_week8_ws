@@ -86,6 +86,7 @@ class GuiNode(Node):
         """월드 카메라 클래스 콜백"""
         if msg.data == 'None':
             return
+        
         classes = eval(msg.data)
         for class_ in classes:
             cv2.putText(self.world_camera_frame, class_, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)

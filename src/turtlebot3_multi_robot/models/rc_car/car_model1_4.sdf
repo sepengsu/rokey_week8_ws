@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <model name="rc_car">
+    <pose>0 0 0 0 0 0</pose>
+
+    <!-- Base Link -->
+    <link name="base_link">
+      <inertial>
+        <pose>0 0 0.03 0 0 0</pose>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.05</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.05</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.09</izz>
+        </inertia>
+      </inertial>
+      <visual name="base_visual">
+        <geometry>
+          <box>
+            <size>0.25 0.15 0.06</size>
+          </box>
+        </geometry>
+        <material name="orange">
+          <ambient>1.0 0.5 0.0 1.0</ambient>
+          <diffuse>1.0 0.5 0.0 1.0</diffuse>
+        </material>
+      </visual>
+      <collision name="base_collision">
+        <geometry>
+          <box>
+            <size>0.25 0.15 0.06</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- IMU Sensor -->
+    <link name="imu_link">
+      <inertial>
+        <mass>0.05</mass>
+        <inertia>
+          <ixx>0.0001</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.0001</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.0001</izz>
+        </inertia>
+      </inertial>
+      <sensor name="rc_car_imu" type="imu">
+        <always_on>true</always_on>
+        <update_rate>30</update_rate>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian" mean="0.0" stddev="2e-4"/></x>
+            <y><noise type="gaussian" mean="0.0" stddev="2e-4"/></y>
+            <z><noise type="gaussian" mean="0.0" stddev="2e-4"/></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian" mean="0.0" stddev="1.7e-2"/></x>
+            <y><noise type="gaussian" mean="0.0" stddev="1.7e-2"/></y>
+            <z><noise type="gaussian" mean="0.0" stddev="1.7e-2"/></z>
+          </linear_acceleration>
+        </imu>
+        <plugin name="rc_car_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+          <ros>
+            <remapping>~/out:=imu</remapping>
+          </ros>
+        </plugin>
+      </sensor>
+    </link>
+
+    <!-- Front Left Wheel -->
+    <link name="front_left_wheel">
+      <inertial>
+        <mass>0.1</mass>
+      </inertial>
+      <visual name="front_left_wheel_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </visual>
+      <collision name="front_left_wheel_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.03</radius>
+            <length>0.02</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="front_left_wheel_joint" type="revolute">
+      <parent>base_link</parent>
+      <child>front_left_wheel</child>
+      <pose>0.1 0.07 0.03 0 0 0</pose>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <!-- Rear Caster -->
+    <link name="rear_caster">
+      <inertial>
+        <mass>0.05</mass>
+      </inertial>
+      <visual name="rear_caster_visual">
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </visual>
+      <collision name="rear_caster_collision">
+        <geometry>
+          <sphere>
+            <radius>0.02</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="rear_caster_joint" type="fixed">
+      <parent>base_link</parent>
+      <child>rear_caster</child>
+      <pose>-0.1 0 0.02 0 0 0</pose>
+    </joint>
+
+    <!-- Plugins -->
+    <plugin name="rc_car_diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <namespace>/rc_car</namespace>
+      </ros>
+      <left_joint>front_left_wheel_joint</left_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+      <wheel_separation>0.14</wheel_separation>
+      <wheel_diameter>0.06</wheel_diameter>
+      <update_rate>50</update_rate>
+    </plugin>
+    <plugin name="rc_car_joint_state" filename="libgazebo_ros_joint_state_publisher.so">
+      <ros>
+        <remapping>~/out:=joint_states</remapping>
+      </ros>
+      <update_rate>30</update_rate>
+      <joint_name>front_left_wheel_joint</joint_name>
+      <joint_name>front_right_wheel_joint</joint_name>
+    </plugin>
+  </model>
+</sdf>

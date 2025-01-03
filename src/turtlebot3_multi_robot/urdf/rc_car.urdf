@@ -1,0 +1,142 @@
+<?xml version="1.0" ?>
+<robot name="rc_car" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Base Link -->
+  <link name="base_link">
+    <inertial>
+      <origin xyz="0 0 0.03" rpy="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="0.05" ixy="0.0" ixz="0.0" iyy="0.05" iyz="0.0" izz="0.09"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.25 0.15 0.06"/>
+      </geometry>
+      <material name="orange">
+        <color rgba="1.0 0.5 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.25 0.15 0.06"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <!-- IMU Sensor -->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.05"/>
+    </inertial>
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>30</update_rate>
+      <imu>
+        <angular_velocity>
+          <x><noise type="gaussian" mean="0.0" stddev="0.0002"/></x>
+          <y><noise type="gaussian" mean="0.0" stddev="0.0002"/></y>
+          <z><noise type="gaussian" mean="0.0" stddev="0.0002"/></z>
+        </angular_velocity>
+        <linear_acceleration>
+          <x><noise type="gaussian" mean="0.0" stddev="0.017"/></x>
+          <y><noise type="gaussian" mean="0.0" stddev="0.017"/></y>
+          <z><noise type="gaussian" mean="0.0" stddev="0.017"/></z>
+        </linear_acceleration>
+      </imu>
+    </sensor>
+  </link>
+
+  <!-- Front Left Wheel -->
+  <link name="front_left_wheel">
+    <inertial>
+      <mass value="0.1"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <cylinder length="0.02" radius="0.03"/>
+      </geometry>
+      <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.02" radius="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_left_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_left_wheel"/>
+    <origin xyz="0.1 0.07 0.03" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Front Right Wheel -->
+  <link name="front_right_wheel">
+    <inertial>
+      <mass value="0.1"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <cylinder length="0.02" radius="0.03"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.02" radius="0.03"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="front_right_wheel_joint" type="continuous">
+    <parent link="base_link"/>
+    <child link="front_right_wheel"/>
+    <origin xyz="0.1 -0.07 0.03" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+  </joint>
+
+  <!-- Rear Caster Wheel -->
+  <link name="rear_caster">
+    <inertial>
+      <mass value="0.05"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+      <material name="gray">
+        <color rgba="0.5 0.5 0.5 1.0"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <sphere radius="0.02"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="rear_caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="rear_caster"/>
+    <origin xyz="-0.1 0 0.02" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Differential Drive Plugin -->
+  <gazebo>
+    <plugin name="rc_car_diff_drive" filename="libgazebo_ros_diff_drive.so">
+      <ros>
+        <namespace>/rc_car</namespace>
+      </ros>
+      <left_joint>front_left_wheel_joint</left_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+      <wheel_separation>0.14</wheel_separation>
+      <wheel_diameter>0.06</wheel_diameter>
+      <update_rate>50</update_rate>
+      <publish_odom>true</publish_odom>
+      <publish_odom_tf>true</publish_odom_tf>
+      <odometry_frame>odom</odometry_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+    </plugin>
+  </gazebo>
+
+</robot>

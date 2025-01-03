@@ -6,9 +6,9 @@ from nav2_msgs.action import NavigateToPose
 mother_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
 sys.path.append(os.path.dirname(mother_path)) # project 디렉토리 추가
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__)))) # project 디렉토리 추가
-from project.project.amer_control.function import add_methods_from, GoToGoalFunction
+from project.project.amr.function import add_methods_from, CommandFunction
 
-@add_methods_from(GoToGoalFunction)
+@add_methods_from(CommandFunction)
 class ControlNode(Node):
     def __init__(self):
         super().__init__('control_node')
@@ -22,15 +22,14 @@ class ControlNode(Node):
         """Initialize subscribers"""
         self.create_subscription(
             String,'/control/commands',
-            self.commands_callback,5)
-
-    def commands_callback(self, msg):
-        self.cmd = msg.data
+            self.cmd_callback,5)
 
     def init_publishers(self):
         """Initialize publishers"""
         self.initpose_pub = self.create_publisher(
             PoseWithCovarianceStamped,'/initialpose',5)
+        self.cmd_vel_pub = self.create_publisher(
+            PoseStamped,'/cmd_vel',5)
     
     def action_clients(self):
         '''

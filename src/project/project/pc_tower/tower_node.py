@@ -29,6 +29,7 @@ class TowerNode(Node):
         super().__init__('tower_node')
         self.get_logger().info('Tower node started')
         self.init_subscribers()
+        self.control_timer = self.create_timer(0.05, self.control) # 0.02초마다 control 함수 실행
 
     def init_subscribers(self):
         self.robot_sub()

@@ -4,6 +4,10 @@ ROBOT_CLASS_DICT = {
     0: 'car',
     1: 'dummy'
     }
+
+class WorldFindCar:
+    '''
+    '''
 class AmrFunction:
     '''
     pc_tower의 tower_node.py에서 사용되는 함수들을 모아놓은 클래스
@@ -67,5 +71,15 @@ class AmrFunction:
             return 0, 0
         error = self.calculate_error(box)
         return self.get_velocity(error)
+    
+
+
+class MakeCmd:
+    '''
+    control_node에 command를 보내는 클래스
+    '''
+
+
+
     
 

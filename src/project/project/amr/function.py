@@ -1,5 +1,6 @@
 from geometry_msgs.msg import PoseWithCovarianceStamped, Quaternion, PoseStamped
 from nav2_msgs.action import NavigateToPose
+from geometry_msgs.msg import Twist
 
 def add_methods_from(source_class):
     """
@@ -101,6 +102,25 @@ class CommandFunction:
     '''
     msg.data에 따라 명령을 수행하는 클래스
     '''
+
+    def cmd_callback(self, msg):
+        '''
+        /control/commands 메시지 콜백
+        '''
+        cmd = msg.data
+        if cmd == 'Standby':
+            self.cmd_standby()
+        elif cmd == 'Start':
+            self.cmd_start()
+        elif cmd == 'Emergency stop':
+            self.cmd_emergency_stop()
+        elif cmd == 'Found':
+            self.cmd_found()
+        elif cmd.startswith('Velocity'):
+            self.cmd_vel(cmd)
+        else:
+            print('Invalid command')
+            
     def cmd_standby(self):
         '''
         Standby 명령 수행
@@ -147,4 +167,36 @@ class CommandFunction:
         '''
         print('Found')
         self.cancel_goal()
+
+    def cmd_vel(self, msg):
+        '''
+        로봇 속도 제어
+        [x, y, z] 속도와 w 각속도를 받아 로봇 제어
+        for example, msg.data = [0.1, 0, 0, 0]
+        '''
+        print('Velocity')
+        data = eval(msg.data)
+        if len(data) != 4:
+            print('Invalid data')
+            return
+        x, y, z, w = data # x, y, z, w
+
+        # 로봇 제어 코드
+        twist = Twist()
+        twist.linear.x = x
+        twist.linear.y = y
+        twist.linear.z = z
+        twist.angular.x = 0
+        twist.angular.y = 0
+        twist.angular.z = w
+        self.cmd_vel_pub.publish(twist)
+
+
+
+
+
+        
+
+
+
         

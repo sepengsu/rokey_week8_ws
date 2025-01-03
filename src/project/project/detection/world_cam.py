@@ -7,12 +7,14 @@ from project.database import DetectDBHandler
 import time
 from project.detection.function import max_color, get_index_of_cam
  
+
 class WorldCam(Node):
     def __init__(self):
         super().__init__('world_cam')
         self.image_pub = self.create_publisher(CompressedImage, '/world_cam/image', 5)
         self.boxes_pub = self.create_publisher(String, '/world_cam/boxes', 5)
         self.classes_pub = self.create_publisher(String, '/world_cam/classes', 5)
+        self.description_pub = self.create_publisher(String, '/world_cam/description', 5) # 탐지된 물체 설명 (color, size, refind) 발행
         self.yolo = Detection('world')
         self.db = DetectDBHandler()
         self.db.create_table() # 테이블 생성 or 이미 존재하면 열기만 함

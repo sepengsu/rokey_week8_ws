@@ -15,7 +15,7 @@
     </scene>
 
     <gui fullscreen='0'>
-      <camera name='user_camera'>
+      <camera name='world_camera'>
         <pose frame=''>0.319654 -0.235002 9.29441 0 1.5138 0.009599</pose>
         <view_controller>orbit</view_controller>
         <projection_type>perspective</projection_type>
@@ -29,7 +29,6 @@
       <ode>
         <solver>
           <type>quick</type>
-          <iters>150</iters>
           <precon_iters>0</precon_iters>
           <sor>1.400000</sor>
           <use_dynamic_moi_rescaling>1</use_dynamic_moi_rescaling>
@@ -43,10 +42,11 @@
       </ode>
     </physics>
 
-    <model name="turtlebot3_world">
+    <!-- Maze Model -->
+    <model name="maze">
       <static>1</static>
       <include>
-        <uri>model://turtlebot3_world</uri>
+         <uri>model://maze/maze_world.sdf</uri>
       </include>
     </model>
 
