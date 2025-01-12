@@ -19,7 +19,7 @@ class GuiNode(Node):
         """월드 카메라 관련 노드 초기화"""
         self.create_subscription(
             CompressedImage,
-            '/world_cam/image',
+            '/world_cam/image_raw/compressed',
             self.world_camera_image_callback,
             5
         )
@@ -40,7 +40,7 @@ class GuiNode(Node):
         """로봇 카메라 관련 노드 초기화"""
         self.create_subscription(
             CompressedImage,
-            '/robot_cam/image',
+            '/robot_cam/image_raw/compressed',
             self.robot_camera_image_callback,
             5
         )

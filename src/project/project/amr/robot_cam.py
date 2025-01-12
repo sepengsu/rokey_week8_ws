@@ -21,7 +21,7 @@ def get_index_of_cam():
 class RobotCam(Node):
     def __init__(self):
         super().__init__('robot_cam')
-        self.image_pub = self.create_publisher(CompressedImage, '/robot_cam/image', 5)
+        self.image_pub = self.create_publisher(CompressedImage, '/robot_cam/image_raw/compressed', 5)
         self.boxes_pub = self.create_publisher(String, '/robot_cam/boxes', 5)
         self.classes_pub = self.create_publisher(String, '/robot_cam/classes', 5)
         self.yolo = Detection('robot')

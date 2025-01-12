@@ -44,7 +44,7 @@ class TowerNode(Node):
     def robot_sub(self):    
         self.robot_image_sub = self.create_subscription(
             CompressedImage,
-            'robot/image',
+            'robot/image_raw/compressed',
             self.robot_camera_image_callback,
             5
         )
@@ -64,19 +64,19 @@ class TowerNode(Node):
     def world_sub(self):
         self.world_image_sub = self.create_subscription(
             CompressedImage,
-            'world/image',
+            'world_cam/image_raw/compressed',
             self.world_camera_image_callback,
             5
         )
         self.world_class_sub = self.create_subscription(
             String,
-            'world/classes',
+            'world_cam/classes',
             self.world_camera_classes_callback,
             5
         )
         self.world_box_sub = self.create_subscription(
             String,
-            'world/boxes',
+            'world_cam/boxes',
             self.world_camera_boxes_callback,
             5
         )
