@@ -15,13 +15,13 @@ class ImageToCompressed(Node):
         # Subscriptions
         self.world_cam_sub = self.create_subscription(
             Image,
-            '/world_cam/image',
+            '/world_cam/image_raw',
             self.world_cam_callback,
             10
         )
         self.robot_cam_sub = self.create_subscription(
             Image,
-            '/robot_cam/image',
+            '/robot_cam/image_raw',
             self.robot_cam_callback,
             10
         )
@@ -29,12 +29,12 @@ class ImageToCompressed(Node):
         # Publishers
         self.world_cam_pub = self.create_publisher(
             CompressedImage,
-            '/world_cam/image/compressed',
+            '/world_cam/image_raw/compressed',
             10
         )
         self.robot_cam_pub = self.create_publisher(
             CompressedImage,
-            '/robot_cam/image/compressed',
+            '/robot_cam/image_raw/compressed',
             10
         )
 

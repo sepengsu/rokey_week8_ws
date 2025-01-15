@@ -1,2 +1,0 @@
-prepend-non-duplicate;GAZEBO_MODEL_PATH;@GAZEBO_MODEL_PATH@
-prepend-non-duplicate;GAZEBO_RESOURCE_PATH;@GAZEBO_RESOURCE_PATH@
