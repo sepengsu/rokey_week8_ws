@@ -29,8 +29,7 @@ urdf_list = [os.path.join(package_dir, 'urdf', 'turtlebot3_' + TURTLEBOT3_MODEL 
 urdf_list = [os.path.join(package_dir, 'urdf', 'rc_car.urdf')] 
 
 sdf_list = [os.path.join(package_dir, 'models', 'turtlebot3_'+ TURTLEBOT3_MODEL, 'model.sdf')] # turtlebot3_burger.sdf
-sdf_list = [os.path.join(package_dir, 'models', 'rc_car', 'model.sdf')] # rc_car.sdf
-            # os.path.join(package_dir, 'models', 'rc_car', 'car_model.sdf')] # rc_car.sdf
+sdf_list = [os.path.join(package_dir, 'models', 'rc_car', 'car_model.sdf')] # rc_car.sdf
 
 def generate_launch_description():
     ld = LaunchDescription()
@@ -64,11 +63,13 @@ def generate_launch_description():
             package_dir, 'rviz', 'multi_nav2_default_view.rviz'))
 
 
+    # 가제보 서버와 클라이언트 노드 추가
     gzserver_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(gazebo_ros_pkg, 'launch', 'gzserver.launch.py')
         ),
-        launch_arguments={'world': world,'verbose': 'true',}.items(),
+        launch_arguments={'world': world,'verbose': 'true',
+                          '-s': 'libgazebo_ros_factory.so',}.items(),
     )
 
     gzclient_cmd = IncludeLaunchDescription(

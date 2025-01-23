@@ -1,0 +1,10 @@
+controller_manager:
+  ros__parameters:
+    diff_drive_controller:
+      type: "diff_drive_controller/DiffDriveController"
+      left_wheel_names: ["wheel_left_joint"]
+      right_wheel_names: ["wheel_right_joint"]
+      wheel_separation: 0.288  # 바퀴 간 거리
+      wheel_radius: 0.033     # 바퀴 반지름
+      publish_rate: 50
+      use_sim_time: true

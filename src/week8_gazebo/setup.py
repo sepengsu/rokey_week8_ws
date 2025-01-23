@@ -41,6 +41,7 @@ params = copy_folder_file("params", f"share/{package_name}/params")
 rviz = copy_folder_file("rviz", f"share/{package_name}/rviz")
 urdf = copy_folder_file("urdf", f"share/{package_name}/urdf")
 worlds = copy_folder_file("worlds", f"share/{package_name}/worlds")
+config = copy_folder_file("config", f"share/{package_name}/config")
 setup(
     name=package_name,
     version='0.0.0',
@@ -56,6 +57,7 @@ setup(
         *rviz,
         *urdf,
         *worlds,
+        *config,
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -66,6 +68,7 @@ setup(
     entry_points={
         'console_scripts': [
             'compressed_node = week8_gazebo.compressed_node:main',
+            'keyboard_control = week8_gazebo.keyboard_control:main',
         ],
     },
 )

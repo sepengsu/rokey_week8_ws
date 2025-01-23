@@ -345,7 +345,7 @@
     </joint>
 
     <joint name="imu_joint" type="fixed">
-      <parent>base_link</parent>
+      <parent>base_link</parent>rear
       <child>imu_link</child>
       <pose>-0.032 0 0.068 0 0 0</pose>
       <axis>
