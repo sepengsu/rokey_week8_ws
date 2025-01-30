@@ -68,7 +68,7 @@ setup(
     entry_points={
         'console_scripts': [
             'compressed_node = week8_gazebo.compressed_node:main',
-            'keyboard_control = week8_gazebo.keyboard_control:main',
+            'keyboard_controller = week8_gazebo.keyboard_control:main',
         ],
     },
 )

@@ -9,7 +9,8 @@ def generate_launch_description():
     pkg_name = 'week8_gazebo'
     pkg_dir = FindPackageShare(pkg_name).find(pkg_name)
 
-    urdf_path = os.path.join(pkg_dir, 'urdf', 'turtlebot3_waffle.urdf')
+    # urdf_path = os.path.join(pkg_dir, 'urdf', 'turtlebot3_waffle.urdf')
+    urdf_path = os.path.join(pkg_dir, 'urdf', 'teslaModel3.urdf')
 
     # 로봇 상태 퍼블리셔
     robot_state_publisher_node = Node(
@@ -44,6 +45,7 @@ def generate_launch_description():
     )
     return LaunchDescription([
         robot_state_publisher_node,
-        joint_state_publisher_node,
-        controller_manager_node,
+        # joint_state_publisher_node,
+        # controller_manager_node,
+        rviz2_node 
     ])

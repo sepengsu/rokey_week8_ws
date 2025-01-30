@@ -3,7 +3,6 @@ from launch_ros.actions import Node
 from launch.actions import SetEnvironmentVariable, ExecuteProcess
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration
 from launch_ros.substitutions import FindPackageShare
-import os
 
 def generate_launch_description():
     # Package and file paths
@@ -14,11 +13,7 @@ def generate_launch_description():
     gazebo_plugin_path = PathJoinSubstitution(['/opt/ros/humble/lib'])
 
     world_file = PathJoinSubstitution([pkg_dir, 'worlds', 'week8_world.world'])
-    # sdf_path = PathJoinSubstitution([pkg_dir, 'models', 'rc_car', 'car_model.sdf'])
-    # urdf_path = PathJoinSubstitution([pkg_dir, 'urdf', 'rc_car.urdf'])
-    sdf_path = PathJoinSubstitution([gazebo_model_path, 'turtlebot3_burger', 'model.sdf'])
-    urdf_path = PathJoinSubstitution([gazebo_model_path, 'turtlebot3_burger', 'turtlebot3_burger.urdf'])
-    
+    sdf_path = PathJoinSubstitution([pkg_dir, 'models', 'rc_car', 'car_model.sdf'])
 
     # Robot parameters
     robot_name = LaunchConfiguration('robot_name', default='rc_car')
@@ -27,20 +22,20 @@ def generate_launch_description():
     robot_y_pose = LaunchConfiguration('y_pose', default='0.0')
     robot_z_pose = LaunchConfiguration('z_pose', default='0.01')
 
-    # Gazebo process
+    # Gazebo process with additional physics plugin
     gazebo_process = ExecuteProcess(
-        cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so'],
+        cmd=['gazebo', '--verbose', world_file, '-s', 'libgazebo_ros_factory.so', '-s', 'libgazebo_ros_init.so'],
         output='screen'
     )
 
-    # Joint State Publisher Node
+    # Joint State Publisher Node (removed URDF dependency)
     joint_state_publisher = Node(
         package='joint_state_publisher',
         namespace=robot_namespace,
         executable='joint_state_publisher',
         name='joint_state_publisher',
         output='screen',
-        parameters=[{'use_gui': True}, {'robot_description': urdf_path}]
+        parameters=[{'use_gui': True}]
     )
 
     # Spawn RC Car Node
@@ -51,7 +46,7 @@ def generate_launch_description():
             '-file', sdf_path,
             '-entity', robot_name,
             '-robot_namespace', robot_namespace,
-            '-x', robot_x_pose, '-y', robot_y_pose, '-z', robot_z_pose, '-Y', '0.0', '-unpause'
+            '-x', robot_x_pose, '-y', robot_y_pose, '-z', robot_z_pose, '-Y', '0.0'
         ],
         output='screen'
     )
@@ -61,10 +56,9 @@ def generate_launch_description():
         SetEnvironmentVariable('GAZEBO_MODEL_PATH', gazebo_model_path),
         SetEnvironmentVariable('GAZEBO_PLUGIN_PATH', gazebo_plugin_path),
 
+        # Launch Joint State Publisher
+        joint_state_publisher,
         # Launch Gazebo
         gazebo_process,
-
-        # Launch nodes
-        joint_state_publisher,
         spawn_rc_car
     ])
