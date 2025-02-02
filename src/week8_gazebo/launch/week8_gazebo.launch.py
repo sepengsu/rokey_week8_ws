@@ -19,17 +19,17 @@ gazebo_model_path = PathJoinSubstitution([FindPackageShare('week8_gazebo'),'mode
 gazebo_plugin_path = PathJoinSubstitution(['/opt/ros/humble/lib'])
 
 robots = [
-# {'name': 'robot', 'x_pose': '1.8', 'y_pose': '1.2', 'z_pose': '0.01'},
-{'name': 'rc_car', 'x_pose': '1.8', 'y_pose': '1.2', 'z_pose': '0.01'},
+{'name': 'robot', 'x_pose': '1.8', 'y_pose': '1.2', 'z_pose': '0.01'},
+{'name': 'rc_car', 'x_pose': '2.0', 'y_pose': '2.4', 'z_pose': '0.01'},
 ]
 TURTLEBOT3_MODEL = 'burger'
 world = os.path.join(package_dir,'worlds', 'week8_world.world')
 
-urdf_list = [os.path.join(package_dir, 'urdf', 'turtlebot3_' + TURTLEBOT3_MODEL + '.urdf')] # turtlebot3_burger.urdf
-urdf_list = [os.path.join(package_dir, 'urdf', 'rc_car.urdf')] 
+urdf_list = [os.path.join(package_dir, 'urdf', 'turtlebot3_' + TURTLEBOT3_MODEL + '.urdf'),
+             os.path.join(package_dir, 'urdf', 'rc_car.urdf')]
 
-sdf_list = [os.path.join(package_dir, 'models', 'turtlebot3_'+ TURTLEBOT3_MODEL, 'model.sdf')] # turtlebot3_burger.sdf
-sdf_list = [os.path.join(package_dir, 'models', 'rc_car', 'car_model.sdf')] # rc_car.sdf
+sdf_list = [os.path.join(package_dir, 'models', 'turtlebot3_'+ TURTLEBOT3_MODEL, 'model.sdf'),
+            os.path.join(package_dir, 'models', 'rc_car', 'car_model.sdf')] # rc_car.sdf
 
 def generate_launch_description():
     ld = LaunchDescription()
@@ -49,7 +49,7 @@ def generate_launch_description():
         name='enable_drive', default_value=enable_drive, description='Enable robot drive node'
     )
 
-    enable_rviz = LaunchConfiguration('enable_rviz', default='true')
+    enable_rviz = LaunchConfiguration('enable_rviz', default='false') # rviz 노드를 시작하지 않도록 설정 
     declare_enable_rviz = DeclareLaunchArgument(
         name='enable_rviz', default_value=enable_rviz, description='Enable rviz launch'
     )
